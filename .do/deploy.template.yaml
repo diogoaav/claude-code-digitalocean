@@ -1,0 +1,72 @@
+spec:
+  alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
+  databases:
+  - name: litellm-db
+#  disable_edge_cache: true
+#  disable_email_obfuscation: true
+#  domains:
+#  - domain: litellm.example.com
+#    type: PRIMARY
+  features:
+  - buildpack-stack=ubuntu-22
+  ingress:
+    rules:
+    - component:
+        name: litellm
+      match:
+        authority:
+          exact: ""
+        path:
+          prefix: /
+  name: litellm-app
+  region: lon
+  services:
+  - name: litellm
+    envs:
+    - key: LITELLM_LOG
+      scope: RUN_TIME
+      value: ERROR
+    - key: LITELLM_MODE
+      scope: RUN_TIME
+      value: PRODUCTION
+    - key: LITELLM_MASTER_KEY
+      scope: RUN_TIME
+      type: SECRET
+      value: 
+    - key: UI_USERNAME
+      scope: RUN_TIME
+      value:
+    - key: UI_PASSWORD
+      scope: RUN_TIME
+      type: SECRET
+      value: 
+    - key: DATABASE_URL
+      scope: RUN_TIME
+      value: ${db.DATABASE_URL}
+    - key: STORE_MODEL_IN_DB
+      scope: RUN_TIME
+      value: "True"
+    - key: LITELLM_DROP_PARAMS
+      scope: RUN_TIME
+      value: "True"
+    - key: REQUEST_TIMEOUT
+      scope: RUN_TIME
+      value: "600"
+    - key: JSON_LOGS
+      scope: RUN_TIME
+      value: "True"
+    - key: PROXY_BATCH_WRITE_AT
+      scope: RUN_TIME
+      value: "60"
+    image:
+      registry: berriai
+      registry_type: GHCR
+      repository: litellm
+      tag: main-stable
+    http_port: 4000
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    source_dir: /
+  
