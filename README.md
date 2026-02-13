@@ -27,6 +27,8 @@ We use Litellm, hosted on DigitalOcean App Platform, to proxy requests from Clau
 
 ## How to deploy the gateway
 
+The one-click deploy builds LiteLLM from this repo’s `Dockerfile.litellm`, which applies the [empty-text-block fix](#fixing-400-bad-request--text-content-blocks-must-be-non-empty), so the gateway is ready for Claude Code without extra steps.
+
 1. Click the button below to deploy the gateway to DigitalOcean App Platform:
 
    [![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/jkpe/claude-code-digitalocean/tree/main)
@@ -132,6 +134,8 @@ docker build -f Dockerfile.litellm -t your-registry/litellm:patched .
 Then point your App Platform (or other deployment) at `your-registry/litellm:patched` instead of `berriai/litellm:main-stable`. Alternatively, run LiteLLM from source and apply the patch manually.
 
 The sanitizer removes or replaces empty `{"type":"text","text":""}` blocks so every text block is non-empty (e.g. a single space), which satisfies Anthropic’s API.
+
+**If you deployed from a fork** and want the app to build from your fork (e.g. to pick up your changes), set the litellm service's **Source** in the App Platform dashboard to your GitHub repo and branch instead of the default.
 
 ### Testing Claude Code with the gateway
 
