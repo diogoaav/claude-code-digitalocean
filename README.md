@@ -29,11 +29,11 @@ We use Litellm, hosted on DigitalOcean App Platform, to proxy requests from Clau
 
 The one-click deploy builds LiteLLM from this repo’s `Dockerfile.litellm`, which applies the [empty-text-block fix](#fixing-400-bad-request--text-content-blocks-must-be-non-empty), so the gateway is ready for Claude Code without extra steps.
 
-1. Click the button below to deploy the gateway to DigitalOcean App Platform:
+1. Click the **Deploy to DO** button below (or open the link). This loads the full app spec from `.do/deploy.template.yaml`, which creates the **litellm** service, a **Dev Database** (`litellm-db`), and all environment variables. If you create an app via **Create App → GitHub → select repo** instead, DigitalOcean only detects the Dockerfile and creates a minimal app with **no database and no app environments** — use the button so the full template is applied.
 
-   [![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/jkpe/claude-code-digitalocean/tree/main)
+   [![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/diogoaav/claude-code-digitalocean/tree/main)
 
-2. Set the following environment variables, leave the rest as default:
+2. Set the following environment variables when prompted, leave the rest as default:
 
    Use `openssl rand -hex 32` to generate a random master key.
 
@@ -48,6 +48,8 @@ The one-click deploy builds LiteLLM from this repo’s `Dockerfile.litellm`, whi
 3. Once deployed, browse to the app URL and login with the username and password you set. `https://your-app-name.ondigitalocean.app/ui`
 
 4. Add DigitalOcean Serverless Inference API Endpoint to the gateway in the UI. [Here are the steps with screenshots.](https://docs.litellm.ai/docs/proxy/ui_credentials)
+
+**If you have no database and no app environments** — the app was created without the full template. Delete the app and create it again using the **Deploy to DO** button link above (do not use Create App → GitHub). Or add a **Dev Database** in the app dashboard (Resources → Add Resource → Database → Dev Database), name it `litellm-db`, then add the env vars (including `DATABASE_URL` = `${litellm-db.DATABASE_URL}`) to the litellm service.
 
 **If you see "Your build job was skipped because you specified a pre-built image"** — the app was created with an older spec that used a container image. Either **delete the app and deploy again** with the button (so the current template with Dockerfile build is used), or in the dashboard: open the app → **litellm** component → **Settings** / **Source** → switch from **Container Registry** to **Git** / **GitHub** → set repo to your repo (e.g. `diogoaav/claude-code-digitalocean`), branch `main`, and **Dockerfile path** to `Dockerfile.litellm` → Save and redeploy.
 
