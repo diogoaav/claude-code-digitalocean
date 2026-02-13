@@ -63,8 +63,8 @@ spec:
     - key: PROXY_BATCH_WRITE_AT
       scope: RUN_TIME
       value: "60"
-    github:
-      repo: diogoaav/claude-code-digitalocean
+    git:
+      repo_clone_url: https://github.com/diogoaav/claude-code-digitalocean.git
       branch: main
       deploy_on_push: true
     dockerfile_path: Dockerfile.litellm

@@ -49,6 +49,8 @@ The one-click deploy builds LiteLLM from this repo’s `Dockerfile.litellm`, whi
 
 4. Add DigitalOcean Serverless Inference API Endpoint to the gateway in the UI. [Here are the steps with screenshots.](https://docs.litellm.ai/docs/proxy/ui_credentials)
 
+**If you see "Your build job was skipped because you specified a pre-built image"** — the app was created with an older spec that used a container image. Either **delete the app and deploy again** with the button (so the current template with Dockerfile build is used), or in the dashboard: open the app → **litellm** component → **Settings** / **Source** → switch from **Container Registry** to **Git** / **GitHub** → set repo to your repo (e.g. `diogoaav/claude-code-digitalocean`), branch `main`, and **Dockerfile path** to `Dockerfile.litellm` → Save and redeploy.
+
 - Provider: `OpenAI-Compatible Endpoints`
 - LiteLLM Model Name: `anthropic-claude-4.5-sonnet` (this is the model name that is passed to the DigitalOcean Serverless Inference API Endpoint)
 - Model Name: `digitalocean-anthropic-claude-4.5-sonnet` (this is the model name that Claude Code will use, set it to whatever you want, it will be used as the `ANTHROPIC_MODEL` environment variable in Claude Code)
