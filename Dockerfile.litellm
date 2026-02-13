@@ -1,0 +1,25 @@
+# LiteLLM image with anthropic empty-text-block sanitization applied.
+# Use this when deploying the gateway so Claude Code does not get 400 from empty blocks.
+#
+# Build: docker build -f Dockerfile.litellm -t your-registry/litellm:patched .
+# For DO App Platform: use this Dockerfile as the source for the litellm service.
+
+FROM berriai/litellm:main-stable
+
+USER root
+# Install patch (image may not include it)
+RUN (command -v patch >/dev/null 2>&1) || (apk add --no-cache patch 2>/dev/null) || (apt-get update -qq && apt-get install -y -qq patch) || true
+COPY patches/litellm-anthropic-empty-blocks.patch /tmp/
+# Apply patch to the installed litellm package (path may vary by image)
+# Apply patch from site-packages (parent of litellm) so -p1 yields litellm/llms/...
+RUN set -e; \
+  for d in /usr/local/lib/python*/site-packages/litellm /opt/venv/lib/python*/site-packages/litellm; do \
+    if [ -d "$d/llms/anthropic/experimental_pass_through/messages" ]; then \
+      cd "$d/.." && patch -p1 -f < /tmp/litellm-anthropic-empty-blocks.patch || true; \
+      rm -f /tmp/litellm-anthropic-empty-blocks.patch; \
+      break; \
+    fi; \
+  done
+USER 1000
+
+# Keep the image's default CMD/ENTRYPOINT for LiteLLM

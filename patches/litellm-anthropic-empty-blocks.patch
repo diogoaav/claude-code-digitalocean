@@ -1,0 +1,40 @@
+--- a/litellm/llms/anthropic/experimental_pass_through/messages/handler.py
++++ b/litellm/llms/anthropic/experimental_pass_through/messages/handler.py
+@@ -176,6 +176,7 @@ def anthropic_messages_handler(
+  """
+  from litellm.types.utils import LlmProviders
+ 
++ _sanitize_anthropic_empty_text_blocks(messages)
+  metadata = validate_anthropic_api_metadata(metadata)
+ 
+  local_vars = locals()
+@@ -302,3 +303,35 @@ def anthropic_messages_handler(
+   stream=stream,
+   kwargs=kwargs,
+  )
++
++
++def _sanitize_anthropic_empty_text_blocks(messages: List[Dict]) -> None:
++    """Remove or fix empty text content blocks so Anthropic API does not reject the request."""
++    if not messages:
++        return
++    for msg in messages:
++        content = msg.get("content")
++        if content is None:
++            continue
++        if isinstance(content, str):
++            if not content.strip():
++                msg["content"] = " "
++            continue
++        if isinstance(content, list):
++            i = 0
++            while i < len(content):
++                block = content[i]
++                if isinstance(block, dict) and block.get("type") == "text":
++                    text = block.get("text")
++                    if text is None or (isinstance(text, str) and not text.strip()):
++                        content.pop(i)
++                        continue
++                i += 1
++            if not content:
++                msg["content"] = " "

@@ -87,6 +87,52 @@ export ANTHROPIC_AUTH_TOKEN=sk-litellm-key
 export CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1
 ```
 
+### Fixing "400 Bad Request – text content blocks must be non-empty"
+
+When using **Anthropic pass-through** (`/v1/messages`), Claude Code sometimes sends message blocks with empty or whitespace-only text. Anthropic rejects these with:
+
+```text
+400 Bad Request
+messages: text content blocks must be non-empty
+```
+
+LiteLLM currently forwards the payload as-is, so you need to sanitize empty blocks before the request reaches Anthropic. This repo includes two options:
+
+#### Option A: Sanitizer callback (recommended if you run LiteLLM from source or a custom entrypoint)
+
+1. Copy `litellm_anthropic_sanitizer.py` into your LiteLLM environment (or mount it where Python can import it).
+2. Before starting the LiteLLM server, register the callback:
+
+```python
+import litellm
+from litellm_anthropic_sanitizer import AnthropicEmptyBlockSanitizer
+
+litellm.add_callback(AnthropicEmptyBlockSanitizer())
+# then start the proxy, e.g. litellm (cli) or uvicorn
+```
+
+If you use a custom Docker image, add an entrypoint script that does the above then runs the normal LiteLLM command.
+
+#### Option B: Patch LiteLLM’s Anthropic pass-through handler
+
+Apply the included patch so the handler sanitizes messages before forwarding:
+
+```bash
+# From the repo root, with LiteLLM source (e.g. in a venv or Docker build)
+cd path/to/litellm  # or pip show litellm, then cd to site-packages/litellm
+patch -p1 < /path/to/claude-code-digitalocean/patches/litellm-anthropic-empty-blocks.patch
+```
+
+Then run or build LiteLLM as usual. **Using the pre-built `berriai/litellm` image:** Build a custom image with the patch applied. From this repo:
+
+```bash
+docker build -f Dockerfile.litellm -t your-registry/litellm:patched .
+```
+
+Then point your App Platform (or other deployment) at `your-registry/litellm:patched` instead of `berriai/litellm:main-stable`. Alternatively, run LiteLLM from source and apply the patch manually.
+
+The sanitizer removes or replaces empty `{"type":"text","text":""}` blocks so every text block is non-empty (e.g. a single space), which satisfies Anthropic’s API.
+
 ### Testing Claude Code with the gateway
 
 Start Claude Code `claude` and you should see your custom model noted at the top
