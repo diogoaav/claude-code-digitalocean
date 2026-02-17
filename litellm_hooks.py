@@ -26,7 +26,9 @@ class FixRequestHook(CustomLogger):
         if isinstance(messages, list):
             for message in messages:
                 content = message.get("content")
-                if isinstance(content, str):
+                if content is None:
+                    message["content"] = " "
+                elif isinstance(content, str):
                     if not content.strip():
                         message["content"] = " "
                 elif isinstance(content, list):
