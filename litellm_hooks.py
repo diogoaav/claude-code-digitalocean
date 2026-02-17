@@ -19,7 +19,8 @@ class FixRequestHook(CustomLogger):
         data: dict,
         call_type: str,
     ) -> Optional[dict]:
-        if call_type not in ("completion", "text_completion"):
+        # completion/text_completion = /chat/completions; anthropic_messages = /v1/messages (Claude Code)
+        if call_type not in ("completion", "text_completion", "anthropic_messages"):
             return data
 
         messages = data.get("messages")
@@ -32,15 +33,32 @@ class FixRequestHook(CustomLogger):
                     if not content.strip():
                         message["content"] = " "
                 elif isinstance(content, list):
-                    for block in content:
-                        if block.get("type") == "text":
-                            text = block.get("text", "")
-                            if not isinstance(text, str) or not text.strip():
-                                block["text"] = " "
+                    if not content:
+                        message["content"] = " "
+                    else:
+                        for block in content:
+                            if not isinstance(block, dict):
+                                continue
+                            # Fix any block with a "text" key (text, thinking, etc.)
+                            if "text" in block:
+                                text = block.get("text", "")
+                                if not isinstance(text, str) or not text.strip():
+                                    block["text"] = " "
+                            elif block.get("type") == "text":
+                                text = block.get("text", "")
+                                if not isinstance(text, str) or not text.strip():
+                                    block["text"] = " "
 
         max_tokens = data.get("max_tokens")
-        if max_tokens is None or not isinstance(max_tokens, int) or max_tokens < 1:
+        if max_tokens is None:
             data["max_tokens"] = 4096
+        else:
+            try:
+                n = int(max_tokens) if not isinstance(max_tokens, int) else max_tokens
+                if n < 1:
+                    data["max_tokens"] = 4096
+            except (TypeError, ValueError):
+                data["max_tokens"] = 4096
 
         data = _strip_nulls(data)
         return data
