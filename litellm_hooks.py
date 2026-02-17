@@ -1,7 +1,6 @@
 from typing import Any, Optional
 
 from litellm.integrations.custom_logger import CustomLogger
-from litellm.proxy.proxy_server import DualCache, UserAPIKeyAuth
 
 
 def _strip_nulls(obj: Any) -> Any:
@@ -15,8 +14,8 @@ def _strip_nulls(obj: Any) -> Any:
 class FixRequestHook(CustomLogger):
     async def async_pre_call_hook(
         self,
-        user_api_key_dict: UserAPIKeyAuth,
-        cache: DualCache,
+        user_api_key_dict: Any,
+        cache: Any,
         data: dict,
         call_type: str,
     ) -> Optional[dict]:
