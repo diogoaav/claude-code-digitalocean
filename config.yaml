@@ -1,0 +1,3 @@
+litellm_settings:
+  callbacks:
+    - litellm_hooks.proxy_handler_instance
